@@ -209,6 +209,7 @@ Spaceship.prototype.update = function() {
         this.x -= this.speed;
     }
     this.checkShooting();
+    this.checkAlive();
 };
 
 Spaceship.prototype.drawAllBullets = function(ctx) {
@@ -231,6 +232,31 @@ Spaceship.prototype.checkShooting = function() {
         }
     } else if (!this.isSpacebar) {
         this.isShooting = false;
+    }
+}
+
+Spaceship.prototype.checkAlive = function() {
+    for (var i = 1; i < this.game.entities.length; i++) {
+        if (this.game.entities[i].x >= this.x &&
+            this.game.entities[i].x <= this.x + this.sprite.width &&
+            this.game.entities[i].y >= this.y &&
+            this.game.entities[i].y <= this.y + this.sprite.height ||
+            this.game.entities[i].x + this.sprite.width >= this.x &&
+            this.game.entities[i].x + this.sprite.width <= this.x + this.sprite.width &&
+            this.game.entities[i].y >= this.y &&
+            this.game.entities[i].y <= this.y + this.sprite.height ||
+            this.game.entities[i].x >= this.x &&
+            this.game.entities[i].x <= this.x + this.width &&
+            this.game.entities[i].y + this.game.entities[i].sprite.height >= this.y &&
+            this.game.entities[i].y + this.game.entities[i].sprite.height <= this.y + this.sprite.height ||
+            this.game.entities[i].x + this.game.entities[i].sprite.width >= this.x &&
+            this.game.entities[i].x + this.game.entities[i].sprite.width <= this.x + this.sprite.width &&
+            this.game.entities[i].y + this.game.entities[i].sprite.height >= this.y &&
+            this.game.entities[i].y + this.game.entities[i].sprite.height <= this.y + this.sprite.height) {
+            this.game.entities[i].removeFromWorld = true;
+            this.game.lives-- ;
+        }
+
     }
 }
 
@@ -275,6 +301,7 @@ Bullet.prototype.checkHitEnemy = function() {
             this.removeFromWorld = true;
             this.game.entities[i].removeFromWorld = true;
             this.x = -50;
+            this.game.score +=10;
         }
 
     }
@@ -282,6 +309,8 @@ Bullet.prototype.checkHitEnemy = function() {
 
 function EvilAliens() {
     GameEngine.call(this);
+    this.score = 0;
+    this.lives = 5;
 }
 EvilAliens.prototype = new GameEngine();
 EvilAliens.prototype.constructor = EvilAliens;
@@ -302,7 +331,22 @@ EvilAliens.prototype.update = function() {
 }
 
 EvilAliens.prototype.draw = function() {
-    GameEngine.prototype.draw.call(this);
+    GameEngine.prototype.draw.call(this, function(game) {
+        game.drawScore();
+        game.drawLives();
+    });
+}
+
+EvilAliens.prototype.drawScore = function() {
+    this.ctx.fillStyle = "red";
+    this.ctx.font = "bold 2em Arial";
+    this.ctx.fillText("Score " + this.score, 10, 550);
+}
+
+EvilAliens.prototype.drawLives = function() {
+    this.ctx.fillStyle = "red";
+    this.ctx.font = "bold 2em Arial";
+    this.ctx.fillText("Lives: " + this.lives, 10, 575);
 }
 
 var canvas = document.getElementById('surface');
