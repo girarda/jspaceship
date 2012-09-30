@@ -139,19 +139,9 @@ function Entity(game, x, y) {
 Entity.prototype.update = function() {
 }
 
-Entity.prototype.draw = function(ctx) {
-    if (this.game.showOutlines && this.radius) {
-        ctx.beginPath();
-        ctx.strokeStyle = "green";
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
-        ctx.stroke();
-        ctx.closePath();
-    }
-}
-
-Entity.prototype.outsideScreen = function() {
-    return (this.x > this.game.halfSurfaceWidth || this.x < -(this.game.halfSurfaceWidth) ||
-        this.y > this.game.halfSurfaceHeight || this.y < -(this.game.halfSurfaceHeight));
+Entity.prototype.isOutsideScreen = function() {
+    return (this.x < 0 || this.x >  this.game.surfaceWidth ||
+        this.y < 0 || this.y > this.game.surfaceHeight);
 }
 
 function Alien(game, x, y) {
@@ -167,16 +157,18 @@ Alien.prototype.constructor = Alien;
 Alien.prototype.update = function() {
     //this.x += this.speed * this.game.deltaTime;
     this.y += this.speed * this.game.deltaTime;
-    Entity.prototype.update.call(this);
+    if (this.y >= 900)
+    {
+        this.removeFromWorld = true;
+    }
 }
 
 Alien.prototype.draw = function(ctx) {
     ctx.drawImage(this.sprite, this.x, this.y);
-    Entity.prototype.draw.call(this, ctx);
 }
 
 function Spaceship(game) {
-    Entity.call(this, game, 0, 0);
+    Entity.call(this, game, 400, 500);
     this.sprite = ASSET_MANAGER.getAsset('images/spaceship.png');
 
     this.isRightKey = false;
@@ -187,16 +179,23 @@ function Spaceship(game) {
 
     this.speed = 2.5;
 
+    this.bullets = [];
+    this.currentBullet = 0;
+    this.MAX_BULLETS = 50;
+    for (var i = 0; i < this.MAX_BULLETS; i++) {
+        this.bullets.push(new Bullet(this.game));
+    }
+
 }
 Spaceship.prototype = new Entity();
 Spaceship.prototype.constructor = Spaceship;
 
 Spaceship.prototype.draw = function(ctx) {
-    this.checkDirection();
-    ctx.drawImage(this.sprite, this.x - this.sprite.width/2, this.y - this.sprite.height/2);
+    ctx.drawImage(this.sprite, this.x, this.y);
+    this.drawAllBullets(ctx);
 }
 
-Spaceship.prototype.checkDirection = function() {
+Spaceship.prototype.update = function() {
     if (this.isUpKey) {
         this.y -= this.speed;
     }
@@ -209,7 +208,77 @@ Spaceship.prototype.checkDirection = function() {
     if (this.isLeftKey) {
         this.x -= this.speed;
     }
+    this.checkShooting();
 };
+
+Spaceship.prototype.drawAllBullets = function(ctx) {
+    for (var i = 0; i < this.MAX_BULLETS; i++) {
+        this.bullets[i].update();
+        this.bullets[i].draw(ctx);
+    }
+}
+
+Spaceship.prototype.checkShooting = function() {
+    if (this.isSpacebar && !this.isShooting) {
+        this.isShooting = true;
+        this.bullets[this.currentBullet].fire(this.x + 10, this.y);
+        this.currentBullet++;
+        this.bullets[this.currentBullet].fire(this.x + this.sprite.width - 25, this.y);
+        this.currentBullet++;
+        
+        if (this.currentBullet >= this.MAX_BULLETS) {
+            this.currentBullet = 0;
+        }
+    } else if (!this.isSpacebar) {
+        this.isShooting = false;
+    }
+}
+
+function Bullet(game) {
+    Entity.call(this, game, 50, 50);
+    this.game = game;
+    this.x = 50;
+    this.y = 50;
+    this.speed = 0.5;
+    this.sprite = ASSET_MANAGER.getAsset('images/bullet.png');
+}
+Bullet.prototype = new Entity();
+Bullet.prototype.constructor = Bullet;
+
+Bullet.prototype.update = function() {
+    if (this.isOutsideScreen()) {
+        this.removeFromWorld = true;
+    } else {
+        this.y -= this.speed * this.game.deltaTime;
+        this.checkHitEnemy();
+        Entity.prototype.update.call(this);
+    }
+}
+
+Bullet.prototype.draw = function(ctx) {
+    ctx.drawImage(this.sprite, this.x, this.y);
+    //Entity.prototype.draw.call(this, ctx);
+}
+
+Bullet.prototype.fire = function(startX, startY) {
+    this.x = startX;
+    this.y = startY;
+    removeFromWorld = false;
+}
+
+Bullet.prototype.checkHitEnemy = function() {
+    for (var i = 1; i < this.game.entities.length; i++) {
+        if (this.x >= this.game.entities[i].x &&
+            this.x <= this.game.entities[i].x + this.game.entities[i].sprite.width &&
+            this.y >= this.game.entities[i].y &&
+            this.y <= this.game.entities[i].y + this.game.entities[i].sprite.height) {
+            this.removeFromWorld = true;
+            this.game.entities[i].removeFromWorld = true;
+            this.x = -50;
+        }
+
+    }
+}
 
 function EvilAliens() {
     GameEngine.call(this);
@@ -243,6 +312,7 @@ var ASSET_MANAGER = new AssetManager();
 
 ASSET_MANAGER.queueDownload('images/alien.png');
 ASSET_MANAGER.queueDownload('images/spaceship.png');
+ASSET_MANAGER.queueDownload('images/bullet.png');
 
 ASSET_MANAGER.downloadAll(function() {
     document.addEventListener('keydown', checkKeyDown, false);
