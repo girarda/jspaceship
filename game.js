@@ -222,9 +222,7 @@ Spaceship.prototype.drawAllBullets = function(ctx) {
 Spaceship.prototype.checkShooting = function() {
     if (this.isSpacebar && !this.isShooting) {
         this.isShooting = true;
-        this.bullets[this.currentBullet].fire(this.x + 10, this.y);
-        this.currentBullet++;
-        this.bullets[this.currentBullet].fire(this.x + this.sprite.width - 25, this.y);
+        this.bullets[this.currentBullet].fire(this.x + this.sprite.width/2 - 3, this.y);
         this.currentBullet++;
         
         if (this.currentBullet >= this.MAX_BULLETS) {
