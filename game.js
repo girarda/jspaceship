@@ -363,21 +363,60 @@ EvilAliens.prototype.drawLives = function() {
     this.ctx.fillText("Lives: " + this.lives, 10, 575);
 }
 
+var xMouse = 0;
+var yMouse = 0;
 var canvas = document.getElementById('surface');
 var ctx = canvas.getContext('2d');
 var game = new EvilAliens();
 var ASSET_MANAGER = new AssetManager();
+var menu = new Menu();
 
+ASSET_MANAGER.queueDownload('images/menu.png');
 ASSET_MANAGER.queueDownload('images/alien.png');
 ASSET_MANAGER.queueDownload('images/spaceship.png');
 ASSET_MANAGER.queueDownload('images/bullet.png');
 
+
 ASSET_MANAGER.downloadAll(function() {
+    document.addEventListener('click', mouseClicked, false);
+    menu.draw();
+});
+
+function playGame() {
     document.addEventListener('keydown', checkKeyDown, false);
     document.addEventListener('keyup', checkKeyUp, false);
     game.init(ctx);
     game.start();
-});
+}
+
+function Menu() {
+    this.btnPlay = new Button(248, 502, 221, 351);
+}
+
+Menu.prototype.draw = function() {
+    ctx.drawImage(ASSET_MANAGER.getAsset('images/menu.png'), 0, 0);
+}
+
+function Button(xL, xR, yT, yB) {
+    this.xLeft = xL;
+    this.xRight = xR;
+    this.yTop = yT;
+    this.yBottom = yB;
+}
+
+Button.prototype.checkClicked = function() {
+    if (this.xLeft <= mouseX && mouseX <= this.xRight && this.yTop <= mouseY && mouseY <= this.yBottom) {
+        return true
+    }
+};
+
+function mouseClicked(e) {
+    mouseX = e.pageX - canvas.offsetLeft;
+    mouseY = e.pageY - canvas.offsetTop;
+    if (menu.btnPlay.checkClicked()) {
+        playGame();
+    }
+}
 
 function checkKeyDown(e) {
     var keyID = e.keyCode || e.which;
