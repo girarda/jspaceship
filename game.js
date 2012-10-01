@@ -208,6 +208,21 @@ Spaceship.prototype.update = function() {
     if (this.isLeftKey) {
         this.x -= this.speed;
     }
+
+    if (this.x <= 2) {
+        this.x = 2;
+    }
+    if (this.x + this.sprite.width >= this.game.surfaceWidth -2)
+    {
+        this.x = this.game.surfaceWidth - this.sprite.width - 2;
+    }
+    if (this.y <= 2) {
+        this.y = 2;
+    }
+    if (this.y + this.sprite.height >= this.game.surfaceHeight) {
+        this.y = this.game.surfaceHeight - this.sprite.height;
+    }
+
     this.checkShooting();
     this.checkAlive();
 };
@@ -272,6 +287,7 @@ Bullet.prototype.constructor = Bullet;
 Bullet.prototype.update = function() {
     if (this.isOutsideScreen()) {
         this.removeFromWorld = true;
+        this.x = -50;
     } else {
         this.y -= this.speed * this.game.deltaTime;
         this.checkHitEnemy();
