@@ -5,9 +5,18 @@ window.requestAnimFrame = (function(){
               window.oRequestAnimationFrame      ||
               window.msRequestAnimationFrame     ||
               function(/* function */ callback, /* DOMElement */ element){
-                window.setTimeout(callback, 1000 / 60);
+                return window.setTimeout(callback, 1000 / 60);
               };
 })();
+
+window.cancelRequestAnimFrame = ( function() {
+    return  window.cancelAnimationFrame                 ||
+            window.webkitCancelRequestAnimationFrame    ||
+            window.mozCancelRequestAnimationFrame       ||
+            window.oCancelRequestAnimationFrame         ||
+            window.msCancelRequestAnimationFrame        ||
+            clearTimeout;
+} )();
 
 function AssetManager() {
     this.successCount = 0;
@@ -66,6 +75,12 @@ function GameEngine() {
     this.surfaceHeight = null;
     this.halfSurfaceWidth = null;
     this.halfSurfaceHeight = null;
+
+    this.lives = null;
+    this.score = null;
+    this.user = null;
+
+    this.request = null;
 }
 
 GameEngine.prototype.init = function(ctx) {
@@ -75,6 +90,9 @@ GameEngine.prototype.init = function(ctx) {
     this.surfaceHeight = this.ctx.canvas.height;
     this.halfSurfaceWidth = this.surfaceWidth/2;
     this.halfSurfaceHeight = this.surfaceHeight/2;
+
+    this.lives = 5;
+    this.score = 0;
 }
 
 GameEngine.prototype.start = function() {
@@ -83,8 +101,25 @@ GameEngine.prototype.start = function() {
     var that = this;
     (function gameLoop() {
         that.loop();
-        requestAnimFrame(gameLoop, that.ctx.canvas);
+        this.request = requestAnimFrame(gameLoop, that.ctx.canvas);
     })();
+}
+
+GameEngine.prototype.end = function() {
+    this.stopLoop();
+    this.askUser();
+}
+
+GameEngine.prototype.stopLoop = function() {
+    setTimeout(function() {
+        cancelRequestAnimFrame(this.request);
+        init();
+    }, 5) 
+}
+
+GameEngine.prototype.askUser = function() {
+    var confirmString = "Congratulation, you got a score of " + this.score + " what is your name?"
+    this.user = prompt(confirmString);
 }
 
 GameEngine.prototype.addEntity = function(entity) {
@@ -104,6 +139,9 @@ GameEngine.prototype.draw = function(callback) {
 }
 
 GameEngine.prototype.update = function() {
+    if (this.lives <= 0) {
+        this.end();
+    }
     var entitiesCount = this.entities.length;
     
     for (var i = 0; i < entitiesCount; i++) {
@@ -323,8 +361,6 @@ Bullet.prototype.checkHitEnemy = function() {
 
 function EvilAliens() {
     GameEngine.call(this);
-    this.score = 0;
-    this.lives = 5;
 }
 EvilAliens.prototype = new GameEngine();
 EvilAliens.prototype.constructor = EvilAliens;
@@ -363,13 +399,11 @@ EvilAliens.prototype.drawLives = function() {
     this.ctx.fillText("Lives: " + this.lives, 10, 575);
 }
 
-var xMouse = 0;
-var yMouse = 0;
 var canvas = document.getElementById('surface');
 var ctx = canvas.getContext('2d');
-var game = new EvilAliens();
+var game = null;
 var ASSET_MANAGER = new AssetManager();
-var menu = new Menu();
+var menu = null;
 
 ASSET_MANAGER.queueDownload('images/menu.png');
 ASSET_MANAGER.queueDownload('images/alien.png');
@@ -378,19 +412,31 @@ ASSET_MANAGER.queueDownload('images/bullet.png');
 
 
 ASSET_MANAGER.downloadAll(function() {
-    document.addEventListener('click', mouseClicked, false);
-    menu.draw();
+    init();
 });
+
+function init() {
+    document.addEventListener('click', mouseClicked, false);
+    document.removeEventListener('keydown', checkKeyDown, false);
+    document.removeEventListener('keyup', checkKeyUp, false);
+
+    game = new EvilAliens();
+    menu = new Menu();
+    menu.draw();
+}
 
 function playGame() {
     document.addEventListener('keydown', checkKeyDown, false);
     document.addEventListener('keyup', checkKeyUp, false);
+    document.removeEventListener('click', mouseClicked, false);
     game.init(ctx);
     game.start();
 }
 
 function Menu() {
     this.btnPlay = new Button(248, 502, 221, 351);
+    this.mouseX = null;
+    this.mouseX = null;
 }
 
 Menu.prototype.draw = function() {
@@ -405,14 +451,14 @@ function Button(xL, xR, yT, yB) {
 }
 
 Button.prototype.checkClicked = function() {
-    if (this.xLeft <= mouseX && mouseX <= this.xRight && this.yTop <= mouseY && mouseY <= this.yBottom) {
+    if (this.xLeft <= menu.mouseX && menu.mouseX <= this.xRight && this.yTop <= menu.mouseY && menu.mouseY <= this.yBottom) {
         return true
     }
 };
 
 function mouseClicked(e) {
-    mouseX = e.pageX - canvas.offsetLeft;
-    mouseY = e.pageY - canvas.offsetTop;
+    menu.mouseX = e.pageX - canvas.offsetLeft;
+    menu.mouseY = e.pageY - canvas.offsetTop;
     if (menu.btnPlay.checkClicked()) {
         playGame();
     }
@@ -464,4 +510,10 @@ function checkKeyUp(e) {
         game.ss.isSpacebar = false;
         e.preventDefault();
     }
+}
+
+function sleep(ms) {
+    var dt = new Date();
+    dt.setTime(dt.getTime() + ms)
+    while (new Date().getTime() < dt.getTime());
 }
