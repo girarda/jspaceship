@@ -8,6 +8,10 @@ Menu.prototype.draw = function() {
     ctx.drawImage(ASSET_MANAGER.getAsset('images/menu.png'), 0, 0);
 }
 
+Menu.prototype.checkPlay = function() {
+    return this.btnPlay.checkClicked();
+}
+
 function Button(xL, xR, yT, yB) {
     this.xLeft = xL;
     this.xRight = xR;
@@ -21,11 +25,4 @@ Button.prototype.checkClicked = function() {
     }
 };
 
-function mouseClicked(e) {
-    menu.mouseX = e.pageX - canvas.offsetLeft;
-    menu.mouseY = e.pageY - canvas.offsetTop;
-    if (menu.btnPlay.checkClicked()) {
-        //TODO Refactor this
-        playGame();
-    }
-}
+

@@ -78,3 +78,12 @@ function checkKeyUp(e) {
         e.preventDefault();
     }
 }
+
+function mouseClicked(e) {
+    //TODO refactor this function
+    menu.mouseX = e.pageX - canvas.offsetLeft;
+    menu.mouseY = e.pageY - canvas.offsetTop;
+    if (menu.checkPlay()) {
+        playGame();
+    }
+}
