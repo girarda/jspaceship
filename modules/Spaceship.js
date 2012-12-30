@@ -1,20 +1,90 @@
+/**
+ * @fileoverview Spaceship class definition. Depends on Entity.js.
+ * @author girarda.92@gmail.com (Alexandre Girard)
+ */
+
+/**
+ * Spaceship class, representing a spaceship within a game.
+ * @param{GameEngine} game The game engine to which the entity belongs.
+ * @constructor
+ * @extends {Entity}
+ */
 function Spaceship(game) {
     //TODO change 400,500 too x,y
     Entity.call(this, game, 400, 500);
 
+    /**
+     * The spaceship's sprite.
+     * @type {object}
+     * @private
+     */
     this.sprite = this.game.getAssetManager().getAsset('images/spaceship.png');
 
+    /**
+     * Indicates whether the right key is pressed.
+     * @type {boolean}
+     * @private
+     */
     this.isRightKey = false;
+
+    /**
+     * Indicates whether the down key is pressed.
+     * @type {boolean}
+     * @private
+     */
     this.isDownKey = false;
+
+    /**
+     * Indicates whether the left key is pressed.
+     * @type {boolean}
+     * @private
+     */
     this.isLeftKey = false;
+
+    /**
+     * Indicates whether the spacebar key is pressed.
+     * @type {boolean}
+     * @private
+     */
     this.isSpacebar = false;
+
+    /**
+     * Indicates whether the spaceship is shooting.
+     * @type {boolean}
+     * @private
+     */
     this.isShooting = false;
 
+    /**
+     * The spaceship's speed.
+     * @type {boolean}
+     * @private
+     */
     this.speed = 2.5;
 
+    /**
+     * The spaceship's bullets.
+     * @type {Array.<Bullet>}
+     * @private
+     */
     this.bullets = [];
+
+    /**
+     * The next bullet to be fired by the spaceship.
+     * @type {number}
+     * @private
+     */
     this.currentBullet = 0;
+
+    /**
+     * The maximum number of bullets the spaceship can have.
+     * @const
+     * @type {number}
+     * @private
+     */
     this.MAX_BULLETS = 50;
+    
+    // Full the bullets
     for (var i = 0; i < this.MAX_BULLETS; i++) {
         this.bullets.push(new Bullet(game));
     }
@@ -23,11 +93,17 @@ function Spaceship(game) {
 Spaceship.prototype = new Entity();
 Spaceship.prototype.constructor = Spaceship;
 
-Spaceship.prototype.draw = function(ctx) {
-    ctx.drawImage(this.sprite, this.x, this.y);
-    this.drawAllBullets(ctx);
+/**
+ * Draw the spaceship and its bullets on the game board.
+ */
+Spaceship.prototype.draw = function() {
+    this.game.getBoard().getCtx().drawImage(this.sprite, this.x, this.y);
+    this.drawAllBullets();
 }
 
+/**
+ * Update the spaceship's position, check if it is alive and shooting.
+ */
 Spaceship.prototype.update = function() {
     if (this.isUpKey) {
         this.y -= this.speed;
@@ -60,13 +136,22 @@ Spaceship.prototype.update = function() {
     this.checkAlive();
 };
 
-Spaceship.prototype.drawAllBullets = function(ctx) {
+/**
+ * Draw all the spaceship's bullets.
+ * @private
+ */
+Spaceship.prototype.drawAllBullets = function() {
     for (var i = 0; i < this.MAX_BULLETS; i++) {
         this.bullets[i].update();
-        this.bullets[i].draw(ctx);
+        this.bullets[i].draw();
     }
 }
 
+/**
+ * Check if the spaceship is currently shooting.
+ * @private
+ * @return {boolean} True if the spaceship is shooting.
+ */
 Spaceship.prototype.checkShooting = function() {
     if (this.isSpacebar && !this.isShooting) {
         this.isShooting = true;
@@ -81,6 +166,11 @@ Spaceship.prototype.checkShooting = function() {
     }
 }
 
+/**
+ * Check if the spaceship is alive.
+ * @private
+ * @return {boolean} True if the spaceship is alive.
+ */
 Spaceship.prototype.checkAlive = function() {
     for (var i = 1; i < game.getEntities().length; i++) {
         if (this.game.getEntities()[i].getX() >= this.x &&

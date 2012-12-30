@@ -1,3 +1,8 @@
+/**
+ * @fileoverview AssetManager class definition. 
+ * @author sethladd@gmail.com (Seth Ladd)
+ */
+
 function AssetManager() {
     var successCount = 0;
     var errorCount = 0;

@@ -1,5 +1,12 @@
+/**
+ * @fileoverview main JSpaceGame file
+ * @author girarda.92@gmail.com (Alexandre Girard)
+ */
+
 var canvas = document.getElementById('surface');
+
 var ctx = canvas.getContext('2d');
+
 var board = new Board(ctx);
 var game = null;
 var ASSET_MANAGER = new AssetManager();
@@ -13,6 +20,9 @@ ASSET_MANAGER.downloadAll(function() {
     init();
 });
 
+/**
+ * Initializes the event listeners and instanciates a JSpaceship and a menu.
+ */
 function init() {
     document.addEventListener('click', mouseClicked, false);
     document.removeEventListener('keydown', checkKeyDown, false);
@@ -23,6 +33,9 @@ function init() {
     menu.draw();
 }
 
+/**
+ * Starts the game and add keyboard listeners.
+ */
 function playGame() {
     document.addEventListener('keydown', checkKeyDown, false);
     document.addEventListener('keyup', checkKeyUp, false);
@@ -31,6 +44,9 @@ function playGame() {
     game.start();
 }
 
+/**
+ * Check if the keys are down.
+ */
 function checkKeyDown(e) {
     var keyID = e.keyCode || e.which;
     if (keyID === 38 || keyID === 87) { //up arrow or W key
@@ -55,6 +71,9 @@ function checkKeyDown(e) {
     }
 }
 
+/**
+ * Check if he keys are up.
+ */
 function checkKeyUp(e) {
     var keyID = e.keyCode || e.which;
     if (keyID === 38 || keyID === 87) { //up arrow or W key
@@ -79,6 +98,9 @@ function checkKeyUp(e) {
     }
 }
 
+/**
+ * Check the mouse' click position.
+ */
 function mouseClicked(e) {
     //TODO refactor this function
     menu.mouseX = e.pageX - canvas.offsetLeft;
