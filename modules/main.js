@@ -29,7 +29,7 @@ function init() {
     document.removeEventListener('keyup', checkKeyUp, false);
 
     game = new JSpaceship(ASSET_MANAGER);
-    menu = new Menu();
+    menu = new Menu(board);
     menu.draw();
 }
 
